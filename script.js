@@ -12,13 +12,16 @@ const inputCadence = document.querySelector('.form__input--cadence');
 const inputElevation = document.querySelector('.form__input--elevation');
 
 if (navigator.geolocation)
+  //To get the coordinates for a user location
   navigator.geolocation.getCurrentPosition(
     function (position) {
       const { latitude } = position.coords;
       const { longitude } = position.coords;
       console.log(`https://www.google.pt/maps/@${latitude},${longitude}`);
 
-      const coords = [latitude, longitude]
+      const coords = [latitude, longitude];
+
+      //To get the map from the leaflet library
 
       const map = L.map('map').setView(coords, 13);
 
@@ -27,10 +30,24 @@ if (navigator.geolocation)
           '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
       }).addTo(map);
 
-      L.marker(coords)
-        .addTo(map)
-        .bindPopup('A pretty CSS3 popup.<br> Easily customizable.')
-        .openPopup();
+      map.on('click', function (mapEvent) {
+        const { lat, lng } = mapEvent.latlng
+
+        L.marker({ lat, lng })
+          .addTo(map)
+          .bindPopup(
+            //Maker popup property
+            L.popup({
+              maxWidth: 250,
+              minWidth: 100,
+              autoClose: false,
+              closeOnClick: false,
+              className: 'running-popup'
+            })
+          )
+          .setPopupContent('Workout')
+          .openPopup();
+      });
     },
 
     function () {
