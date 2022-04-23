@@ -11,12 +11,40 @@ const inputDuration = document.querySelector('.form__input--duration');
 const inputCadence = document.querySelector('.form__input--cadence');
 const inputElevation = document.querySelector('.form__input--elevation');
 
-let map, mapEvent
+let map, mapEvent;
 
-if (navigator.geolocation)
-  //To get the coordinates for a user location
-  navigator.geolocation.getCurrentPosition(
-    function (position) {
+class App {
+  //Instead of a normal variable it is now a property itself
+  #map
+  #mapEvent
+  constructor() {
+    //Calling the new object
+    this._getPosition()
+
+    form.addEventListener('submit', function (e) {
+      
+    });
+    
+    //To toggle form inputs between elevation and cadence whenever running or cycling is clicked
+    inputType.addEventListener('change', function () {
+      inputElevation.closest('.form__row').classList.toggle('form__row--hidden');
+      inputCadence.closest('.form__row').classList.toggle('form__row--hidden');
+    });
+    
+  }
+
+  _getPosition() {
+    if (navigator.geolocation)
+      //To get the coordinates for a user location
+      navigator.geolocation.getCurrentPosition(this._loadMap.bind(this),
+        function () {
+          alert('Could not get your current location');
+        }
+      );
+  }
+
+  _loadMap(position) {
+    // To load up the map
       const { latitude } = position.coords;
       const { longitude } = position.coords;
       console.log(`https://www.google.pt/maps/@${latitude},${longitude}`);
@@ -25,43 +53,50 @@ if (navigator.geolocation)
 
       //To get the map from the leaflet library
 
-      map = L.map('map').setView(coords, 13);
+      this.#map = L.map('map').setView(coords, 13);
 
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution:
           '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-      }).addTo(map);
+      }).addTo(this.#map);
 
-      map.on('click', function (mapEventLocal) {
-        mapEvent = mapEventLocal
+      this.#map.on('click', function (mapEventLocal) {
+        this.#mapEvent = mapEventLocal;
         form.classList.remove('hidden');
         inputDistance.focus();
       });
-    },
+  }
 
-    function () {
-      alert('Could not get your current location');
-    }
-  );
+  _showForm() {}
 
-form.addEventListener('submit', function (e) {
-  e.preventDefault()
+  _toggleElevationFields() {}
 
-  inputDistance.value = inputDuration.value = inputCadence.value = inputElevation.value = ''
+  _newWorkout(e) {
+    e.preventDefault();
+    
+      inputDistance.value =
+        inputDuration.value =
+        inputCadence.value =
+        inputElevation.value =
+          '';
+//To Display the map maker    
+      const { lat, lng } = mapEvent.latlng;
+      L.marker({ lat, lng })
+        .addTo(this.#map)
+        .bindPopup(
+          //Maker popup property
+          L.popup({
+            maxWidth: 250,
+            minWidth: 100,
+            autoClose: false,
+            closeOnClick: false,
+            className: 'running-popup',
+          })
+        )
+        .setPopupContent('Workout')
+        .openPopup();
+  }
+}
 
-  const { lat, lng } = mapEvent.latlng
-  L.marker({ lat, lng })
-    .addTo(map)
-    .bindPopup(
-      //Maker popup property
-      L.popup({
-        maxWidth: 250,
-        minWidth: 100,
-        autoClose: false,
-        closeOnClick: false,
-        className: 'running-popup'
-      })
-    )
-    .setPopupContent('Workout')
-    .openPopup();
-});
+const app = new App()
+
